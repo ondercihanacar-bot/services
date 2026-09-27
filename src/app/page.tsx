@@ -46,6 +46,7 @@ export default function Home() {
   const [quickStockPart, setQuickStockPart] = useState<Part | null>(null);
   const [printOrder, setPrintOrder] = useState<EnrichedServiceOrder | null>(null);
   const [preselectedVehicle, setPreselectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
   // Success Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -267,6 +268,7 @@ export default function Home() {
       <Header
         shops={shops}
         activeShopId={activeShopId}
+        vehicles={vehicles}
         onSelectShop={(id) => setActiveShopId(id)}
         onOpenNewOrder={() => {
           setPreselectedVehicle(null);
@@ -275,6 +277,11 @@ export default function Home() {
         onOpenNewPart={() => setIsNewPartOpen(true)}
         onOpenNewShop={() => setIsNewShopOpen(true)}
         onSearchPlate={handleSearchPlate}
+        onSelectVehicle={(veh) => {
+          setSelectedVehicleId(veh.id);
+          setActiveTab('vehicles');
+          showToast(`Araç Seçildi: [${veh.plate}] ${veh.brand} ${veh.model}`);
+        }}
       />
 
       {/* Ana Navigasyon Sekmeleri */}
@@ -419,6 +426,8 @@ export default function Home() {
           <VehiclesView
             vehicles={vehicles}
             orders={orders}
+            selectedVehicleId={selectedVehicleId}
+            onSelectVehicle={(veh) => setSelectedVehicleId(veh.id)}
             onOpenNewVehicle={() => setIsNewVehicleOpen(true)}
             onOpenNewOrderForVehicle={(vehicle) => {
               setPreselectedVehicle(vehicle);

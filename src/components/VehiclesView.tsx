@@ -20,18 +20,32 @@ import {
 interface VehiclesViewProps {
   vehicles: (Vehicle & { customer?: Customer })[];
   orders: EnrichedServiceOrder[];
+  selectedVehicleId?: string | null;
   onOpenNewVehicle: () => void;
   onOpenNewOrderForVehicle: (vehicle: Vehicle) => void;
+  onSelectVehicle?: (vehicle: Vehicle & { customer?: Customer }) => void;
 }
 
 export default function VehiclesView({
   vehicles,
   orders,
+  selectedVehicleId,
   onOpenNewVehicle,
-  onOpenNewOrderForVehicle
+  onOpenNewOrderForVehicle,
+  onSelectVehicle
 }: VehiclesViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVehicle, setSelectedVehicle] = useState<(Vehicle & { customer?: Customer }) | null>(null);
+  const [internalSelected, setInternalSelected] = useState<(Vehicle & { customer?: Customer }) | null>(null);
+
+  React.useEffect(() => {
+    if (selectedVehicleId) {
+      const found = vehicles.find((v) => v.id === selectedVehicleId);
+      if (found) setInternalSelected(found);
+    }
+  }, [selectedVehicleId, vehicles]);
+
+  const selectedVehicle = internalSelected || (selectedVehicleId ? vehicles.find(v => v.id === selectedVehicleId) : null);
+
 
   const filteredVehicles = vehicles.filter((v) => {
     if (!searchQuery.trim()) return true;
@@ -102,7 +116,10 @@ export default function VehiclesView({
               return (
                 <div
                   key={vehicle.id}
-                  onClick={() => setSelectedVehicle(vehicle)}
+                  onClick={() => {
+                    setInternalSelected(vehicle);
+                    if (onSelectVehicle) onSelectVehicle(vehicle);
+                  }}
                   className={`bg-white border rounded-xl p-4 cursor-pointer transition-all ${
                     isSelected
                       ? 'border-blue-600 shadow-md ring-1 ring-blue-600 bg-blue-50/20'
