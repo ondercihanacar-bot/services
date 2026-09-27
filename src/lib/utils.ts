@@ -47,50 +47,50 @@ export function formatPlate(plate: string): string {
 export const STATUS_LABELS: Record<ServiceStatus, { label: string; color: string; bg: string; border: string }> = {
   PENDING: {
     label: 'Sırada / Beklemede',
-    color: 'text-amber-700 dark:text-amber-300',
-    bg: 'bg-amber-50 dark:bg-amber-950/40',
-    border: 'border-amber-200 dark:border-amber-800'
+    color: 'text-amber-800',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200'
   },
   DIAGNOSIS: {
     label: 'Teşhis & Ekspertiz',
-    color: 'text-indigo-700 dark:text-indigo-300',
-    bg: 'bg-indigo-50 dark:bg-indigo-950/40',
-    border: 'border-indigo-200 dark:border-indigo-800'
+    color: 'text-indigo-800',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200'
   },
   WAITING_PARTS: {
     label: 'Parça Bekleniyor',
-    color: 'text-orange-700 dark:text-orange-300',
-    bg: 'bg-orange-50 dark:bg-orange-950/40',
-    border: 'border-orange-200 dark:border-orange-800'
+    color: 'text-orange-800',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200'
   },
   IN_PROGRESS: {
     label: 'Tamirde / Liftte',
-    color: 'text-blue-700 dark:text-blue-300',
-    bg: 'bg-blue-50 dark:bg-blue-950/40',
-    border: 'border-blue-200 dark:border-blue-800'
+    color: 'text-blue-800',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200'
   },
   TESTING: {
     label: 'Test & Son Kontrol',
-    color: 'text-purple-700 dark:text-purple-300',
-    bg: 'bg-purple-50 dark:bg-purple-950/40',
-    border: 'border-purple-200 dark:border-purple-800'
+    color: 'text-purple-800',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200'
   },
   READY: {
     label: 'Hazır (Teslim Bekliyor)',
-    color: 'text-emerald-700 dark:text-emerald-300',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    border: 'border-emerald-200 dark:border-emerald-800'
+    color: 'text-emerald-800',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200'
   },
   COMPLETED: {
     label: 'Teslim Edildi',
-    color: 'text-slate-700 dark:text-slate-300',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    border: 'border-slate-300 dark:border-slate-700'
+    color: 'text-slate-700',
+    bg: 'bg-slate-100',
+    border: 'border-slate-200'
   },
   CANCELLED: {
     label: 'İptal Edildi',
-    color: 'text-rose-700 dark:text-rose-300',
-    bg: 'bg-rose-50 dark:bg-rose-950/40',
-    border: 'border-rose-200 dark:border-rose-800'
+    color: 'text-rose-800',
+    bg: 'bg-rose-50',
+    border: 'border-rose-200'
   }
 };

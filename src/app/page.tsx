@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shop, Part, Vehicle, Customer, ServiceStatus } from '@/types';
+import { Shop, Part, Vehicle, Customer, ServiceStatus } from '@/types/index';
 import { EnrichedServiceOrder } from '@/lib/db';
 import Header from '@/components/Header';
 import DashboardView from '@/components/DashboardView';
@@ -19,7 +19,6 @@ import {
   Car,
   Package,
   Users,
-  Settings,
   RefreshCw,
   Building2,
   CheckCircle2
@@ -120,7 +119,6 @@ export default function Home() {
       setActiveTab('vehicles');
       showToast(`Plaka Bulundu: [${foundVeh.plate}] ${foundVeh.brand} ${foundVeh.model}`);
     } else {
-      // Siparişlerde ara
       const foundOrder = orders.find((o) => o.vehicle?.plate.replace(/\s+/g, '').toUpperCase().includes(clean));
       if (foundOrder) {
         setActiveTab('orders');
@@ -263,7 +261,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
       
       {/* Header */}
       <Header
@@ -280,18 +278,18 @@ export default function Home() {
       />
 
       {/* Ana Navigasyon Sekmeleri */}
-      <nav className="no-print bg-slate-900 border-b border-slate-800 sticky top-16 z-20 shadow-sm">
+      <nav className="no-print bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between overflow-x-auto scrollbar-none">
             
-            <div className="flex space-x-1 sm:space-x-3 py-2.5">
+            <div className="flex space-x-1 sm:space-x-2 py-2.5">
               
               <button
                 onClick={() => setActiveTab('dashboard')}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'dashboard'
-                    ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -302,15 +300,15 @@ export default function Home() {
                 onClick={() => setActiveTab('orders')}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'orders'
-                    ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
                 <Car className="w-4 h-4" />
                 <span>Servis & İş Emirleri</span>
                 {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length > 0 && (
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'orders' ? 'bg-slate-950 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                    activeTab === 'orders' ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'
                   }`}>
                     {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length}
                   </span>
@@ -321,15 +319,15 @@ export default function Home() {
                 onClick={() => setActiveTab('inventory')}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'inventory'
-                    ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
                 <Package className="w-4 h-4" />
                 <span>Yedek Parça & Stok</span>
                 {stats?.lowStockCount > 0 && (
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'inventory' ? 'bg-rose-900 text-white' : 'bg-rose-500/20 text-rose-300'
+                    activeTab === 'inventory' ? 'bg-rose-100 text-rose-800' : 'bg-rose-100 text-rose-700'
                   }`}>
                     {stats.lowStockCount}
                   </span>
@@ -340,8 +338,8 @@ export default function Home() {
                 onClick={() => setActiveTab('vehicles')}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'vehicles'
-                    ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
                 <Users className="w-4 h-4" />
@@ -351,17 +349,17 @@ export default function Home() {
             </div>
 
             {/* Dükkan Bilgisi & Canlı Yenileme */}
-            <div className="hidden lg:flex items-center gap-3 text-xs text-slate-400">
-              <span className="flex items-center gap-1.5 font-medium text-slate-300">
-                <Building2 className="w-4 h-4 text-amber-500" />
+            <div className="hidden lg:flex items-center gap-3 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+                <Building2 className="w-4 h-4 text-blue-600" />
                 {activeShop.name}
               </span>
               <button
                 onClick={() => fetchShopData(activeShopId)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Verileri Yenile"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
               </button>
             </div>
 
@@ -371,8 +369,8 @@ export default function Home() {
 
       {/* Toast Bildirimi */}
       {toastMessage && (
-        <div className="no-print fixed bottom-6 right-6 z-50 bg-slate-900 border border-amber-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
-          <CheckCircle2 className="w-5 h-5 text-amber-400 shrink-0" />
+        <div className="no-print fixed bottom-6 right-6 z-50 bg-white border-2 border-blue-600 text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
+          <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
           <span className="text-xs sm:text-sm font-bold">{toastMessage}</span>
         </div>
       )}
@@ -431,10 +429,10 @@ export default function Home() {
       </main>
 
       {/* Alt Bilgi */}
-      <footer className="no-print bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+      <footer className="no-print bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Sanayi Servis Pro © 2026 • Oto Servis, Araç Takip & Parça Stok Yönetim Sistemi</span>
-          <span className="text-slate-400">Aktif Şube: <strong className="text-amber-400">{activeShop.name}</strong></span>
+          <span className="text-slate-600">Aktif Şube: <strong className="text-blue-600">{activeShop.name}</strong></span>
         </div>
       </footer>
 
