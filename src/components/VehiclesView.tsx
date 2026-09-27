@@ -14,7 +14,8 @@ import {
   Fuel,
   Gauge,
   Calendar,
-  Wrench
+  Wrench,
+  FileCheck2
 } from 'lucide-react';
 
 interface VehiclesViewProps {
@@ -23,6 +24,7 @@ interface VehiclesViewProps {
   selectedVehicleId?: string | null;
   onOpenNewVehicle: () => void;
   onOpenNewOrderForVehicle: (vehicle: Vehicle) => void;
+  onOpenHistoryModal: (vehicle: Vehicle & { customer?: Customer }) => void;
   onSelectVehicle?: (vehicle: Vehicle & { customer?: Customer }) => void;
 }
 
@@ -32,6 +34,7 @@ export default function VehiclesView({
   selectedVehicleId,
   onOpenNewVehicle,
   onOpenNewOrderForVehicle,
+  onOpenHistoryModal,
   onSelectVehicle
 }: VehiclesViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,25 +71,25 @@ export default function VehiclesView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-            <Car className="w-6 h-6 text-blue-600" />
+            <Car className="w-6 h-6 text-cyan-600" />
             Araçlar & Müşteri Rehberi
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Dükkana kayıtlı araçlar, müşteri iletişimleri ve araçların servis geçmişi.
+            Servise kayıtlı araçlar, müşteri iletişimleri ve araçların servis geçmişi.
           </p>
         </div>
 
         <button
           onClick={onOpenNewVehicle}
-          className="self-start sm:self-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md shadow-blue-500/20 text-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="neon-btn-primary self-start sm:self-auto px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
+          <Plus className="w-4 h-4 text-cyan-300 stroke-[3]" />
           Yeni Araç & Müşteri Kaydet
         </button>
       </div>
 
       {/* Arama */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           <input
@@ -94,7 +97,7 @@ export default function VehiclesView({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Plaka, Araç Marka/Model, Müşteri Adı veya Telefon ile ara..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white transition-all"
           />
         </div>
       </div>
@@ -122,7 +125,7 @@ export default function VehiclesView({
                   }}
                   className={`bg-white border rounded-xl p-4 cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-600 shadow-md ring-1 ring-blue-600 bg-blue-50/20'
+                      ? 'border-cyan-600 shadow-md ring-1 ring-cyan-500/50 bg-cyan-50/30'
                       : 'border-slate-200 hover:border-slate-300 shadow-sm'
                   }`}
                 >
@@ -130,8 +133,8 @@ export default function VehiclesView({
                     
                     {/* Sol: Plaka & Model */}
                     <div className="flex items-center gap-3">
-                      <div className="relative inline-flex items-center bg-white text-slate-950 border-2 border-slate-400 rounded px-2.5 py-1 font-mono font-black text-sm tracking-wider shadow-sm shrink-0">
-                        <span className="w-4 text-center bg-blue-600 text-white text-[8px] font-bold py-0.5 px-0.5 rounded-sm mr-1.5 -ml-1">TR</span>
+                      <div className="relative inline-flex items-center bg-white text-slate-950 border border-slate-300 rounded-lg px-2.5 py-1 font-mono font-black text-sm tracking-wider shadow-2xs shrink-0">
+                        <span className="w-4 text-center bg-[#0c243f] text-cyan-300 text-[8px] font-bold py-0.5 px-0.5 rounded-2xs mr-1.5 -ml-1">TR</span>
                         {vehicle.plate}
                       </div>
 
@@ -171,15 +174,28 @@ export default function VehiclesView({
                         </div>
                       </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenNewOrderForVehicle(vehicle);
-                        }}
-                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg border border-blue-200 transition-colors"
-                      >
-                        + İş Emri Aç
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenHistoryModal(vehicle);
+                          }}
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                          title="Aracın Bakım Karnesi ve Servis Geçmişini Dök"
+                        >
+                          Karnesi
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenNewOrderForVehicle(vehicle);
+                          }}
+                          className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 font-bold text-xs rounded-lg border border-cyan-200 transition-colors cursor-pointer"
+                        >
+                          + İş Emri Aç
+                        </button>
+                      </div>
                     </div>
 
                   </div>
@@ -197,13 +213,13 @@ export default function VehiclesView({
               {/* Seçilen Araç Başlığı */}
               <div className="border-b border-slate-100 pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="relative inline-flex items-center bg-white text-slate-950 border-2 border-slate-400 rounded px-2 py-0.5 font-mono font-black text-xs tracking-wider shadow-sm">
-                    <span className="w-4 text-center bg-blue-600 text-white text-[8px] font-bold py-0.5 px-0.5 rounded-sm mr-1 -ml-1">TR</span>
+                  <div className="relative inline-flex items-center bg-white text-slate-950 border border-slate-300 rounded-lg px-2 py-0.5 font-mono font-black text-xs tracking-wider shadow-2xs">
+                    <span className="w-3.5 text-center bg-[#0c243f] text-cyan-300 text-[7px] font-bold py-0.2 px-0.5 rounded-2xs mr-1.5 -ml-1">TR</span>
                     {selectedVehicle.plate}
                   </div>
                   <button
                     onClick={() => onOpenNewOrderForVehicle(selectedVehicle)}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                    className="text-xs font-bold text-cyan-700 hover:text-cyan-800 cursor-pointer"
                   >
                     + Yeni Bakım Aç
                   </button>
@@ -211,6 +227,15 @@ export default function VehiclesView({
                 <h3 className="text-base font-bold text-slate-900 mt-2">
                   {selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})
                 </h3>
+
+                {/* Dijital Bakım Karnesi Butonu */}
+                <button
+                  onClick={() => onOpenHistoryModal(selectedVehicle)}
+                  className="w-full mt-2.5 py-2 px-3 neon-btn-primary rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <FileCheck2 className="w-4 h-4 text-cyan-300" />
+                  <span>Dijital Bakım Karnesi (PDF İndir)</span>
+                </button>
               </div>
 
               {/* Teknik Detaylar */}

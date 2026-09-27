@@ -14,6 +14,13 @@ import NewVehicleModal from '@/components/NewVehicleModal';
 import NewShopModal from '@/components/NewShopModal';
 import QuickStockModal from '@/components/QuickStockModal';
 import ServiceReceiptModal from '@/components/ServiceReceiptModal';
+import RemindersView from '@/components/RemindersView';
+import ReportsView from '@/components/ReportsView';
+import VehicleHistoryReportModal from '@/components/VehicleHistoryReportModal';
+import OilStickerModal from '@/components/OilStickerModal';
+import AccountsView from '@/components/AccountsView';
+import ExtraApprovalModal from '@/components/ExtraApprovalModal';
+import VehicleIntakeModal from '@/components/VehicleIntakeModal';
 import {
   LayoutDashboard,
   Car,
@@ -21,7 +28,10 @@ import {
   Users,
   RefreshCw,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Bell,
+  CalendarRange,
+  Wallet
 } from 'lucide-react';
 
 export default function Home() {
@@ -29,7 +39,7 @@ export default function Home() {
   const [activeShopId, setActiveShopId] = useState<string>('shop-1');
 
   // Navigation
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'inventory' | 'vehicles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'inventory' | 'vehicles' | 'accounts' | 'reminders' | 'reports'>('dashboard');
 
   // Data states
   const [stats, setStats] = useState<any>(null);
@@ -45,6 +55,10 @@ export default function Home() {
   const [isNewShopOpen, setIsNewShopOpen] = useState(false);
   const [quickStockPart, setQuickStockPart] = useState<Part | null>(null);
   const [printOrder, setPrintOrder] = useState<EnrichedServiceOrder | null>(null);
+  const [historyVehicle, setHistoryVehicle] = useState<(Vehicle & { customer?: Customer }) | null>(null);
+  const [oilStickerOrder, setOilStickerOrder] = useState<EnrichedServiceOrder | null>(null);
+  const [extraApprovalOrder, setExtraApprovalOrder] = useState<EnrichedServiceOrder | null>(null);
+  const [vehicleIntakeOrder, setVehicleIntakeOrder] = useState<EnrichedServiceOrder | null>(null);
   const [preselectedVehicle, setPreselectedVehicle] = useState<Vehicle | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
@@ -68,7 +82,7 @@ export default function Home() {
         }
       }
     } catch (err) {
-      console.error('Dükkanlar getirilemedi:', err);
+      console.error('Şubeler getirilemedi:', err);
     }
   };
 
@@ -141,7 +155,7 @@ export default function Home() {
       const err = await res.json();
       throw new Error(err.error || 'İş emri oluşturulamadı');
     }
-    showToast('Yeni iş emri açıldı ve yedek parça stoğu güncellendi!');
+    showToast('Yeni iş emri açıldı ve parça stoğu güncellendi!');
     fetchShopData(activeShopId);
   };
 
@@ -179,7 +193,7 @@ export default function Home() {
       const err = await res.json();
       throw new Error(err.error || 'Parça eklenemedi');
     }
-    showToast('Yeni yedek parça kartı depoya eklendi!');
+    showToast('Yeni parça kartı depoya eklendi!');
     fetchShopData(activeShopId);
   };
 
@@ -243,17 +257,17 @@ export default function Home() {
     });
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Dükkan oluşturulamadı');
+      throw new Error(err.error || 'Şube oluşturulamadı');
     }
     const newShop = await res.json();
     await fetchShops();
     setActiveShopId(newShop.id);
-    showToast(`"${newShop.name}" sisteme açıldı ve aktif dükkan olarak seçildi!`);
+    showToast(`"${newShop.name}" sisteme açıldı ve aktif şube olarak seçildi!`);
   };
 
   const activeShop = shops.find((s) => s.id === activeShopId) || shops[0] || {
     id: 'shop-1',
-    name: 'Sanayi Servis',
+    name: 'Services Merkez',
     phone: '',
     email: '',
     city: 'İstanbul',
@@ -261,8 +275,73 @@ export default function Home() {
     address: ''
   };
 
+  // 15 gün kalan veya günü geçmiş hatırlatma sayısı
+  const dueRemindersCount = React.useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return vehicles.filter((v) => {
+      const vOrders = orders.filter((o) => o.vehicleId === v.id);
+      const latest = vOrders.sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime())[0];
+      const nextDateStr = latest?.nextMaintenanceDate;
+      if (!nextDateStr) return false;
+      const nextD = new Date(nextDateStr);
+      nextD.setHours(0, 0, 0, 0);
+      const diff = Math.ceil((nextD.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return diff <= 15;
+    }).length;
+  }, [vehicles, orders]);
+
+  // Açık hesabı / borcu olan iş emri sayısı (Cari Takip için)
+  const openDebtCount = React.useMemo(() => {
+    return orders.filter((o) => Math.max(0, o.grandTotal - (o.paidAmount || 0)) > 0).length;
+  }, [orders]);
+
+  // Ekstra parça onay durumu güncelleme
+  const handleSaveExtraApprovalStatus = async (
+    orderId: string,
+    status: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED',
+    notes: string,
+    amount: number
+  ) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: orderId,
+          extraApprovalStatus: status,
+          extraApprovalNotes: notes,
+          extraApprovalAmount: amount
+        })
+      });
+      if (res.ok) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  extraApprovalStatus: status,
+                  extraApprovalNotes: notes,
+                  extraApprovalAmount: amount
+                }
+              : o
+          )
+        );
+        showToast(
+          status === 'REQUESTED'
+            ? 'Müşteriden ekstra parça/masraf onayı istendi'
+            : status === 'APPROVED'
+            ? 'Müşteri onayı sisteme kaydedildi'
+            : 'Reddedildi olarak güncellendi'
+        );
+      }
+    } catch (err) {
+      console.error('Ekstra onay durumu güncellenemedi:', err);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f4f7fb] text-slate-900 flex flex-col font-sans">
       
       {/* Header */}
       <Header
@@ -285,88 +364,139 @@ export default function Home() {
       />
 
       {/* Ana Navigasyon Sekmeleri */}
-      <nav className="no-print bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs">
+      <nav className="no-print bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-20 z-20 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between overflow-x-auto scrollbar-none">
+          <div className="flex items-center justify-between py-2 gap-2">
             
-            <div className="flex space-x-1 sm:space-x-2 py-2.5">
+            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-0.5">
               
+              {/* 1. Genel Bakış */}
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'dashboard'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'dashboard' ? 'text-cyan-300' : 'text-slate-500'}`} />
                 <span>Genel Bakış</span>
               </button>
 
+              {/* 2. İş Emirleri */}
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'orders'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
                 }`}
               >
-                <Car className="w-4 h-4" />
-                <span>Servis & İş Emirleri</span>
+                <Car className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'orders' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>İş Emirleri</span>
                 {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length > 0 && (
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'orders' ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'
+                    activeTab === 'orders' ? 'bg-cyan-400 text-slate-950 shadow-2xs' : 'bg-cyan-100 text-cyan-800'
                   }`}>
                     {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length}
                   </span>
                 )}
               </button>
 
+              {/* 3. Stok Takibi */}
               <button
                 onClick={() => setActiveTab('inventory')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'inventory'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
                 }`}
               >
-                <Package className="w-4 h-4" />
-                <span>Yedek Parça & Stok</span>
+                <Package className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'inventory' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>Stok Takibi</span>
                 {stats?.lowStockCount > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'inventory' ? 'bg-rose-100 text-rose-800' : 'bg-rose-100 text-rose-700'
-                  }`}>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-2xs">
                     {stats.lowStockCount}
                   </span>
                 )}
               </button>
 
+              {/* 4. Araçlar & Rehber */}
               <button
                 onClick={() => setActiveTab('vehicles')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'vehicles'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
                 }`}
               >
-                <Users className="w-4 h-4" />
-                <span>Araçlar & Müşteriler</span>
+                <Users className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'vehicles' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>Araçlar</span>
+              </button>
+
+              {/* 5. Cari & Borç Takibi */}
+              <button
+                onClick={() => setActiveTab('accounts')}
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  activeTab === 'accounts'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
+                }`}
+              >
+                <Wallet className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'accounts' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>Cari & Borç</span>
+                {openDebtCount > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    activeTab === 'accounts' ? 'bg-rose-500 text-white shadow-2xs' : 'bg-rose-100 text-rose-800'
+                  }`}>
+                    {openDebtCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 6. Bakım & WhatsApp Hatırlatma */}
+              <button
+                onClick={() => setActiveTab('reminders')}
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  activeTab === 'reminders'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
+                }`}
+              >
+                <Bell className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reminders' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>Hatırlatmalar</span>
+                {dueRemindersCount > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    activeTab === 'reminders' ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'bg-amber-100 text-amber-900 font-bold'
+                  }`}>
+                    {dueRemindersCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 6. Raporlar & Sorgu */}
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  activeTab === 'reports'
+                    ? 'neon-tab-active'
+                    : 'neon-tab-inactive'
+                }`}
+              >
+                <CalendarRange className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reports' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                <span>Raporlar & Sorgu</span>
               </button>
 
             </div>
 
-            {/* Dükkan Bilgisi & Canlı Yenileme */}
-            <div className="hidden lg:flex items-center gap-3 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-                <Building2 className="w-4 h-4 text-blue-600" />
-                {activeShop.name}
-              </span>
+            {/* Canlı Yenileme Butonu */}
+            <div className="shrink-0 flex items-center">
               <button
                 onClick={() => fetchShopData(activeShopId)}
-                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="Verileri Yenile"
+                className="p-1.5 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors cursor-pointer"
+                title="Sistem Verilerini Yenile"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-cyan-600' : ''}`} />
               </button>
             </div>
 
@@ -376,8 +506,8 @@ export default function Home() {
 
       {/* Toast Bildirimi */}
       {toastMessage && (
-        <div className="no-print fixed bottom-6 right-6 z-50 bg-white border-2 border-blue-600 text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
-          <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
+        <div className="no-print fixed bottom-6 right-6 z-50 bg-[#0c2340] border border-cyan-400/50 text-white px-4 py-3 rounded-2xl shadow-2xl shadow-cyan-950/40 flex items-center gap-3 animate-bounce">
+          <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
           <span className="text-xs sm:text-sm font-bold">{toastMessage}</span>
         </div>
       )}
@@ -403,6 +533,7 @@ export default function Home() {
         {activeTab === 'orders' && (
           <OrdersView
             orders={orders}
+            shop={activeShop}
             onOpenNewOrder={() => {
               setPreselectedVehicle(null);
               setIsNewOrderOpen(true);
@@ -410,6 +541,8 @@ export default function Home() {
             onSelectOrderForPrint={(order) => setPrintOrder(order)}
             onUpdateStatus={handleUpdateOrderStatus}
             onUpdatePayment={handleUpdateOrderPayment}
+            onOpenExtraApproval={(order) => setExtraApprovalOrder(order)}
+            onOpenVehicleIntake={(order) => setVehicleIntakeOrder(order)}
           />
         )}
 
@@ -429,19 +562,58 @@ export default function Home() {
             selectedVehicleId={selectedVehicleId}
             onSelectVehicle={(veh) => setSelectedVehicleId(veh.id)}
             onOpenNewVehicle={() => setIsNewVehicleOpen(true)}
+            onOpenHistoryModal={(veh) => setHistoryVehicle(veh)}
             onOpenNewOrderForVehicle={(vehicle) => {
               setPreselectedVehicle(vehicle);
               setIsNewOrderOpen(true);
             }}
           />
         )}
+
+        {activeTab === 'accounts' && (
+          <AccountsView
+            orders={orders}
+            shop={activeShop}
+            onUpdatePayment={handleUpdateOrderPayment}
+            onSelectOrderForPrint={(order) => setPrintOrder(order)}
+          />
+        )}
+
+        {activeTab === 'reminders' && (
+          <RemindersView
+            vehicles={vehicles}
+            orders={orders}
+            shop={activeShop}
+            onOpenNewOrderForVehicle={(vehicle) => {
+              setPreselectedVehicle(vehicle);
+              setIsNewOrderOpen(true);
+            }}
+            onOpenHistoryModal={(veh) => setHistoryVehicle(veh)}
+            onShowToast={showToast}
+          />
+        )}
+
+        {activeTab === 'reports' && (
+          <ReportsView
+            orders={orders}
+            vehicles={vehicles}
+            shop={activeShop}
+            onOpenOrder={(order) => setPrintOrder(order)}
+            onOpenHistoryModal={(veh) => setHistoryVehicle(veh)}
+          />
+        )}
       </main>
 
       {/* Alt Bilgi */}
-      <footer className="no-print bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+      <footer className="no-print bg-white/80 border-t border-slate-200/80 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Sanayi Servis Pro © 2026 • Oto Servis, Araç Takip & Parça Stok Yönetim Sistemi</span>
-          <span className="text-slate-600">Aktif Şube: <strong className="text-blue-600">{activeShop.name}</strong></span>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Services Logo" className="w-5 h-5 rounded-md inline-block shadow-xs" />
+            <span className="font-extrabold text-[#0c243f]">SERVICES</span>
+            <span>•</span>
+            <span className="font-semibold text-cyan-700">Servis Takip Otomasyonu © 2026</span>
+          </div>
+          <span className="text-slate-600">Aktif Şube: <strong className="text-cyan-700">{activeShop.name}</strong></span>
         </div>
       </footer>
 
@@ -493,6 +665,43 @@ export default function Home() {
           order={printOrder}
           shop={activeShop}
           onClose={() => setPrintOrder(null)}
+          onOpenOilSticker={(ord) => setOilStickerOrder(ord)}
+        />
+      )}
+
+      {historyVehicle && (
+        <VehicleHistoryReportModal
+          isOpen={Boolean(historyVehicle)}
+          onClose={() => setHistoryVehicle(null)}
+          vehicle={historyVehicle}
+          orders={orders}
+          shop={activeShop}
+        />
+      )}
+
+      {oilStickerOrder && (
+        <OilStickerModal
+          isOpen={Boolean(oilStickerOrder)}
+          onClose={() => setOilStickerOrder(null)}
+          order={oilStickerOrder}
+          shop={activeShop}
+        />
+      )}
+
+      {extraApprovalOrder && (
+        <ExtraApprovalModal
+          order={extraApprovalOrder}
+          shop={activeShop}
+          onClose={() => setExtraApprovalOrder(null)}
+          onSaveStatus={handleSaveExtraApprovalStatus}
+        />
+      )}
+
+      {vehicleIntakeOrder && (
+        <VehicleIntakeModal
+          order={vehicleIntakeOrder}
+          shop={activeShop}
+          onClose={() => setVehicleIntakeOrder(null)}
         />
       )}
 

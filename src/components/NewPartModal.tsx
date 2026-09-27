@@ -66,8 +66,8 @@ export default function NewPartModal({ onClose, onSubmit }: NewPartModalProps) {
         {/* Başlık */}
         <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
-            <Package className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">Yeni Yedek Parça Kartı</h2>
+            <Package className="w-5 h-5 text-cyan-600" />
+            <h2 className="text-base sm:text-lg font-bold text-[#0c243f]">Yeni Parça Kartı</h2>
           </div>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
             <X className="w-5 h-5" />
@@ -252,13 +252,16 @@ export default function NewPartModal({ onClose, onSubmit }: NewPartModalProps) {
             >
               İptal
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md shadow-blue-500/20 text-xs sm:text-sm transition-all disabled:opacity-50"
-            >
-              {loading ? 'Ekleniyor...' : 'Parçayı Kaydet'}
-            </button>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-600 rounded-xl blur-xs opacity-75 group-hover:opacity-100 group-hover:blur-sm transition-all duration-300"></div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="relative neon-btn-primary px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer disabled:opacity-50"
+              >
+                {loading ? 'Ekleniyor...' : 'Parçayı Kaydet'}
+              </button>
+            </div>
           </div>
 
         </form>

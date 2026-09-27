@@ -10,12 +10,14 @@ interface ServiceReceiptModalProps {
   order: EnrichedServiceOrder | null;
   shop: Shop;
   onClose: () => void;
+  onOpenOilSticker?: (order: EnrichedServiceOrder) => void;
 }
 
 export default function ServiceReceiptModal({
   order,
   shop,
-  onClose
+  onClose,
+  onOpenOilSticker
 }: ServiceReceiptModalProps) {
   if (!order) return null;
 
@@ -29,21 +31,30 @@ export default function ServiceReceiptModal({
       <div className="bg-white text-slate-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto">
         
         {/* Modal Üst Kontrol Çubuğu (Yazdırmada Gizlenir) */}
-        <div className="no-print p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 rounded-t-xl">
+        <div className="no-print p-4 bg-[#0c243f] text-white flex items-center justify-between border-b border-cyan-500/20 rounded-t-xl">
           <div className="flex items-center gap-2">
-            <Printer className="w-5 h-5 text-amber-400" />
+            <Printer className="w-5 h-5 text-cyan-400" />
             <span className="font-bold text-sm">Resmi Servis Formu & Teslim Tutanağı</span>
           </div>
           <div className="flex items-center gap-2">
+            {onOpenOilSticker && (
+              <button
+                onClick={() => onOpenOilSticker(order)}
+                className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                title="Kapı Direği Yağ Değişim Kartını Aç"
+              >
+                <span>Yağ Kartı Etiketi</span>
+              </button>
+            )}
             <button
               onClick={handlePrint}
-              className="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-4 py-1.5 neon-btn-primary font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             >
-              <Printer className="w-4 h-4" /> Yazdır (A4)
+              <Printer className="w-4 h-4 text-cyan-300" /> Yazdır (A4)
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -56,10 +67,8 @@ export default function ServiceReceiptModal({
           {/* Servis Başlığı & Logo & İş Emri No */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-slate-900 pb-4">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-slate-900 text-amber-400 flex items-center justify-center font-black">
-                  <Wrench className="w-4 h-4" />
-                </div>
+              <div className="flex items-center gap-2.5">
+                <img src="/logo.png" alt="Services Logo" className="w-8 h-8 rounded-lg object-contain shadow-xs" />
                 <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">
                   {shop.name}
                 </h1>
@@ -100,8 +109,8 @@ export default function ServiceReceiptModal({
               <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
                 <span className="font-bold uppercase tracking-wider text-slate-500 text-[10px]">Araç Bilgileri</span>
                 {/* TR Plaka */}
-                <div className="inline-flex items-center bg-white text-slate-950 border border-slate-400 rounded px-2 py-0.5 font-mono font-black text-xs">
-                  <span className="bg-blue-700 text-white text-[7px] font-bold px-1 rounded-sm mr-1 -ml-1">TR</span>
+                <div className="inline-flex items-center bg-white text-slate-950 border border-slate-300 rounded px-2 py-0.5 font-mono font-black text-xs">
+                  <span className="bg-[#0c243f] text-cyan-300 text-[7px] font-bold px-1 rounded-sm mr-1 -ml-1">TR</span>
                   {order.vehicle?.plate}
                 </div>
               </div>
@@ -162,6 +171,24 @@ export default function ServiceReceiptModal({
                 <span className="text-slate-800">{order.technicianNotes}</span>
               </div>
             )}
+            {(order.fuelLevel || order.damageNotes) && (
+              <div className="pt-1.5 mt-1.5 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-[11px]">
+                {order.fuelLevel && (
+                  <div>
+                    <strong className="text-slate-600">Kabul Yakıt Seviyesi:</strong>{' '}
+                    <span className="font-semibold text-slate-800">
+                      {order.fuelLevel === 'EMPTY' ? 'Rezerv (Boş)' : order.fuelLevel === 'QUARTER' ? '1/4 Depo' : order.fuelLevel === 'HALF' ? '1/2 Depo' : order.fuelLevel === 'THREE_QUARTERS' ? '3/4 Depo' : 'Tam Depo'}
+                    </span>
+                  </div>
+                )}
+                {order.damageNotes && (
+                  <div>
+                    <strong className="text-slate-600">Giriş Hasar / Kaporta Çizik Tespiti:</strong>{' '}
+                    <span className="text-slate-800">{order.damageNotes}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Parça ve İşçilik Kalemleri Tablosu */}
@@ -173,7 +200,7 @@ export default function ServiceReceiptModal({
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
                   <th className="py-2 px-3 text-left w-12">Sıra</th>
-                  <th className="py-2 px-3 text-left">İşlem / Yedek Parça Açıklaması</th>
+                  <th className="py-2 px-3 text-left">İşlem / Parça Açıklaması</th>
                   <th className="py-2 px-3 text-center w-16">Miktar</th>
                   <th className="py-2 px-3 text-right w-24">Birim Fiyat</th>
                   <th className="py-2 px-3 text-right w-16">KDV</th>
@@ -187,7 +214,7 @@ export default function ServiceReceiptModal({
                     <td className="py-2 px-3 font-medium text-slate-900">
                       {item.name}
                       <span className="ml-2 text-[10px] text-slate-500">
-                        ({item.type === 'PART' ? 'Yedek Parça' : 'İşçilik'})
+                        ({item.type === 'PART' ? 'Parça' : 'İşçilik'})
                       </span>
                     </td>
                     <td className="py-2 px-3 text-center">{item.quantity}</td>
@@ -219,7 +246,7 @@ export default function ServiceReceiptModal({
             {/* Fatura Toplamı */}
             <div className="w-full sm:w-64 text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200">
               <div className="flex justify-between text-slate-600">
-                <span>Yedek Parça Toplamı:</span>
+                <span>Parça Toplamı:</span>
                 <span className="font-mono">{formatCurrency(order.partsTotal)}</span>
               </div>
               <div className="flex justify-between text-slate-600">

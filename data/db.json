@@ -11,6 +11,9 @@
       "address": "Bağcılar Güngören Sanayi Sitesi 14. Blok No: 28",
       "taxNumber": "1234567890",
       "taxOffice": "İkitelli V.D.",
+      "iban": "TR33 0006 2000 0001 2345 6789 01",
+      "bankName": "Garanti BBVA - İkitelli OSB Şubesi",
+      "accountHolder": "Özkan Oto Mekanik Servis Ltd. Şti.",
       "createdAt": "2026-01-10T08:00:00.000Z"
     },
     {
@@ -24,6 +27,9 @@
       "address": "Ümraniye Oto Sanayi Sitesi A Kapısı No: 4",
       "taxNumber": "9876543210",
       "taxOffice": "Ümraniye V.D.",
+      "iban": "TR62 0001 0000 0009 8765 4321 02",
+      "bankName": "Ziraat Bankası - Ümraniye Sanayi Şubesi",
+      "accountHolder": "Yıldız Kardeşler Kaporta Boya",
       "createdAt": "2026-02-15T09:30:00.000Z"
     }
   ],
@@ -77,6 +83,9 @@
       "transmission": "Otomatik",
       "currentKm": 94500,
       "color": "Beyaz",
+      "inspectionDate": "2026-11-20",
+      "lastMaintenanceDate": "2026-09-27",
+      "lastMaintenanceKm": 94500,
       "notes": "Periyodik bakım zamanı geldi.",
       "createdAt": "2026-03-01T10:05:00.000Z"
     },
@@ -94,6 +103,9 @@
       "transmission": "Manuel",
       "currentKm": 142000,
       "color": "Gri (Tungsten)",
+      "inspectionDate": "2026-10-12",
+      "lastMaintenanceDate": "2026-09-26",
+      "lastMaintenanceKm": 142000,
       "notes": "Frenlerden ötme sesi şikayeti var.",
       "createdAt": "2026-03-05T11:35:00.000Z"
     },
@@ -111,6 +123,9 @@
       "transmission": "Manuel",
       "currentKm": 185000,
       "color": "Gümüş Gri",
+      "inspectionDate": "2026-09-20",
+      "lastMaintenanceDate": "2026-04-02",
+      "lastMaintenanceKm": 170000,
       "notes": "Ağır bakım ve triger seti değişecek.",
       "createdAt": "2026-03-10T14:20:00.000Z"
     }
@@ -227,6 +242,70 @@
   ],
   "serviceOrders": [
     {
+      "id": "srv-0",
+      "orderNo": "ISEMR-2026-0000",
+      "shopId": "shop-1",
+      "vehicleId": "veh-1",
+      "customerId": "cust-1",
+      "entryDate": "2026-03-10T09:00:00.000Z",
+      "completionDate": "2026-03-10T17:30:00.000Z",
+      "status": "COMPLETED",
+      "serviceType": "AGIR_BAKIM",
+      "customerComplaint": "80.000 KM Ağır bakım yapılacak. Triger seti, v kayışı ve su pompası değişimi talep ediliyor.",
+      "technicianNotes": "Orijinal Gates triger seti ve Graf devirdaim pompası monte edildi. Kırmızı antifriz konuldu, soğutma sistemi hava tahliyesi yapıldı.",
+      "assignedTechnician": "Murat Usta",
+      "kmAtEntry": 80000,
+      "nextMaintenanceKm": 95000,
+      "nextMaintenanceDate": "2026-09-27",
+      "items": [
+        {
+          "id": "item-01",
+          "type": "PART",
+          "name": "Gates Triger Kayış & Rulman Seti",
+          "quantity": 1,
+          "unitPrice": 3400,
+          "vatRate": 20,
+          "totalPrice": 3400
+        },
+        {
+          "id": "item-02",
+          "type": "PART",
+          "name": "Graf Devirdaim Su Pompası",
+          "quantity": 1,
+          "unitPrice": 1650,
+          "vatRate": 20,
+          "totalPrice": 1650
+        },
+        {
+          "id": "item-03",
+          "type": "PART",
+          "name": "Motul Inugel Kırmızı Organik Antifriz 3L",
+          "quantity": 1,
+          "unitPrice": 650,
+          "vatRate": 20,
+          "totalPrice": 650
+        },
+        {
+          "id": "item-04",
+          "type": "LABOR",
+          "name": "Triger & Devirdaim Değişimi Ağır Bakım İşçiliği",
+          "quantity": 1,
+          "unitPrice": 2500,
+          "vatRate": 20,
+          "totalPrice": 2500
+        }
+      ],
+      "partsTotal": 5700,
+      "laborTotal": 2500,
+      "discount": 400,
+      "taxTotal": 1560,
+      "grandTotal": 9360,
+      "paymentStatus": "PAID",
+      "paymentMethod": "KREDI_KARTI",
+      "paidAmount": 9360,
+      "createdAt": "2026-03-10T09:00:00.000Z"
+    },
+    {
       "id": "srv-1",
       "orderNo": "ISEMR-2026-0001",
       "shopId": "shop-1",
@@ -235,6 +314,7 @@
       "entryDate": "2026-09-27T08:30:00.000Z",
       "estimatedDeliveryDate": "2026-09-27T17:00:00.000Z",
       "status": "IN_PROGRESS",
+      "serviceType": "PERIYODIK_BAKIM",
       "customerComplaint": "100.000 km periyodik bakım yapılacak. Ön takımdan kasislerde hafif gıcırtı geliyor kontrol edilsin.",
       "technicianNotes": "Yağ ve filtreler değiştiriliyor. Ön viraj demir lastikleri kontrol edildi, hafif boşluk var yağlandı.",
       "assignedTechnician": "Murat Usta",
@@ -289,6 +369,9 @@
       "grandTotal": 3840,
       "paymentStatus": "UNPAID",
       "paidAmount": 0,
+      "fuelLevel": "HALF",
+      "damageNotes": "Ön tampon sağ altta kaldırıma sürtme izi, sol arka kapıda ince çizik.",
+      "extraApprovalStatus": "NONE",
       "createdAt": "2026-09-27T08:30:00.000Z"
     },
     {
@@ -300,11 +383,19 @@
       "entryDate": "2026-09-26T14:00:00.000Z",
       "completionDate": "2026-09-27T11:00:00.000Z",
       "status": "READY",
+      "serviceType": "FREN_SISTEMI",
       "customerComplaint": "Fren yapınca ötme sesi geliyor, fren pedalı yumuşadı.",
       "technicianNotes": "Ön balatalar bitmiş, diskler taşlandı ve yeni balata takıldı. Fren hidroliği tamamlandı.",
       "assignedTechnician": "Hasan Usta",
       "kmAtEntry": 142000,
       "nextMaintenanceKm": 152000,
+      "nextMaintenanceDate": "2026-10-08",
+      "fuelLevel": "QUARTER",
+      "damageNotes": "Sağ ön çamurlukta taş izi, sol ayna kapağında hafif çizik.",
+      "extraApprovalStatus": "REQUESTED",
+      "extraApprovalNotes": "Ön fren disklerinde aşınma ve çatlak tespit edildi. Balatalarla birlikte disklerin de yenilenmesi önerilir.",
+      "extraApprovalAmount": 1800,
+      "readyNotificationSent": false,
       "items": [
         {
           "id": "item-5",
@@ -331,10 +422,122 @@
       "discount": 150,
       "taxTotal": 400,
       "grandTotal": 2400,
-      "paymentStatus": "PAID",
+      "paymentStatus": "PARTIAL",
       "paymentMethod": "KREDI_KARTI",
-      "paidAmount": 2400,
+      "paidAmount": 1000,
       "createdAt": "2026-09-26T14:00:00.000Z"
+    },
+    {
+      "id": "srv-3",
+      "orderNo": "ISEMR-2026-0003",
+      "shopId": "shop-1",
+      "vehicleId": "veh-3",
+      "customerId": "cust-3",
+      "entryDate": "2026-04-02T10:00:00.000Z",
+      "completionDate": "2026-04-02T16:30:00.000Z",
+      "status": "COMPLETED",
+      "serviceType": "PERIYODIK_BAKIM",
+      "customerComplaint": "Filo aracı 170.000 KM periyodik bakımı ve mazot filtresi değişimi.",
+      "technicianNotes": "5W-30 Motor yağı, tüm filtreler ve mazot filtresi yenilendi. Ön disk ve balata kalınlıkları iyi.",
+      "assignedTechnician": "Murat Usta",
+      "kmAtEntry": 170000,
+      "nextMaintenanceKm": 185000,
+      "nextMaintenanceDate": "2026-10-02",
+      "items": [
+        {
+          "id": "item-7",
+          "type": "PART",
+          "name": "Castrol Magnatec 5W-30 6 Litre",
+          "quantity": 1,
+          "unitPrice": 2200,
+          "vatRate": 20,
+          "totalPrice": 2200
+        },
+        {
+          "id": "item-8",
+          "type": "PART",
+          "name": "Ford Orijinal Mazot Filtresi",
+          "quantity": 1,
+          "unitPrice": 950,
+          "vatRate": 20,
+          "totalPrice": 950
+        },
+        {
+          "id": "item-9",
+          "type": "LABOR",
+          "name": "Periyodik Bakım ve Mazot Filtresi Değişimi",
+          "quantity": 1,
+          "unitPrice": 1400,
+          "vatRate": 20,
+          "totalPrice": 1400
+        }
+      ],
+      "partsTotal": 3150,
+      "laborTotal": 1400,
+      "discount": 250,
+      "taxTotal": 860,
+      "grandTotal": 5160,
+      "paymentStatus": "PAID",
+      "paymentMethod": "HAVALE_EFT",
+      "paidAmount": 5160,
+      "createdAt": "2026-04-02T10:00:00.000Z"
+    },
+    {
+      "id": "srv-4",
+      "orderNo": "ISEMR-2026-0004",
+      "shopId": "shop-1",
+      "vehicleId": "veh-3",
+      "customerId": "cust-3",
+      "entryDate": "2026-09-15T09:00:00.000Z",
+      "completionDate": "2026-09-16T17:00:00.000Z",
+      "status": "COMPLETED",
+      "serviceType": "AGIR_BAKIM",
+      "customerComplaint": "Triger seti değişimi, devirdaim pompası ve V kayışı yenileme.",
+      "technicianNotes": "Orijinal triger seti, devirdaim ve antifriz yenilendi. Test sürüşü yapıldı.",
+      "assignedTechnician": "Murat Usta",
+      "kmAtEntry": 182000,
+      "nextMaintenanceKm": 195000,
+      "nextMaintenanceDate": "2027-03-15",
+      "fuelLevel": "HALF",
+      "damageNotes": "Sağ sürgülü kapıda sürtme izi, arka tampon plastiğinde çizikler.",
+      "items": [
+        {
+          "id": "item-10",
+          "type": "PART",
+          "name": "Ford Transit Triger Seti & Devirdaim Pompası",
+          "quantity": 1,
+          "unitPrice": 4200,
+          "vatRate": 20,
+          "totalPrice": 4200
+        },
+        {
+          "id": "item-11",
+          "type": "PART",
+          "name": "Kırmızı Organik Antifriz 3 Litre",
+          "quantity": 1,
+          "unitPrice": 450,
+          "vatRate": 20,
+          "totalPrice": 450
+        },
+        {
+          "id": "item-12",
+          "type": "LABOR",
+          "name": "Triger Kayış Seti ve Devirdaim Değişim İşçiliği",
+          "quantity": 1,
+          "unitPrice": 2200,
+          "vatRate": 20,
+          "totalPrice": 2200
+        }
+      ],
+      "partsTotal": 4650,
+      "laborTotal": 2200,
+      "discount": 350,
+      "taxTotal": 1300,
+      "grandTotal": 7800,
+      "paymentStatus": "PARTIAL",
+      "paymentMethod": "VERESIYE_CARI",
+      "paidAmount": 3000,
+      "createdAt": "2026-09-15T09:00:00.000Z"
     }
   ],
   "stockMovements": [

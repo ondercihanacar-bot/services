@@ -5,8 +5,11 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Sanayi Servis Pro | Oto Servis & Yedek Parça Stok Takip Sistemi',
-  description: 'Sanayi dükkanları ve oto tamirhaneleri için araç takip, iş emri ve parça stok yönetim platformu.',
+  title: 'SERVICES | Servis Takip Otomasyonu',
+  description: 'Araç takip, iş emri ve parça stok yönetim otomasyon platformu.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -15,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className="h-full bg-slate-50 text-slate-900 antialiased">
-      <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-900`}>
+    <html lang="tr" className="h-full bg-[#f4f7fb] text-slate-900 antialiased">
+      <body className={`${inter.className} min-h-screen bg-[#f4f7fb] text-slate-900 selection:bg-cyan-500 selection:text-white`}>
         {children}
       </body>
     </html>

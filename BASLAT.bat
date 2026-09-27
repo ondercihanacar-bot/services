@@ -1,8 +1,9 @@
 @echo off
 cd /d "%~dp0"
-title Sanayi Servis Pro
+set "PATH=C:\Users\Onder\AppData\Local\Programs\nodejs;C:\Users\Onder\AppData\Local\Programs\Git\cmd;%PATH%"
+title Services - Servis Takip Otomasyonu
 echo ========================================================
-echo   SANAYI SERVIS PRO BASLATILIYOR...
+echo   SERVICES - SERVIS TAKIP OTOMASYONU BASLATILIYOR...
 echo ========================================================
 echo.
 echo Tarayici aciliyor: http://localhost:3000
@@ -11,5 +12,5 @@ echo.
 echo Uygulama baslatiliyor...
 echo Kapatmak icin bu pencereyi kapatabilirsiniz.
 echo.
-npm run dev
+call npm run dev
 pause

@@ -76,6 +76,13 @@ export async function POST(request: Request) {
       discount,
       taxTotal,
       grandTotal,
+      fuelLevel: body.fuelLevel,
+      damageNotes: body.damageNotes,
+      intakePhotos: body.intakePhotos,
+      extraApprovalStatus: body.extraApprovalStatus,
+      extraApprovalNotes: body.extraApprovalNotes,
+      extraApprovalAmount: body.extraApprovalAmount ? Number(body.extraApprovalAmount) : undefined,
+      readyNotificationSent: body.readyNotificationSent,
       paymentStatus: body.paymentStatus || 'UNPAID',
       paymentMethod: body.paymentMethod,
       paidAmount: Number(body.paidAmount) || 0

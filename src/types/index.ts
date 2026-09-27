@@ -9,6 +9,9 @@ export interface Shop {
   address: string;
   taxNumber?: string;
   taxOffice?: string;
+  iban?: string; // Servis Banka IBAN No
+  bankName?: string; // Banka Adı (örn: Garanti BBVA)
+  accountHolder?: string; // Hesap Sahibi
   createdAt: string;
 }
 
@@ -17,6 +20,8 @@ export interface Customer {
   shopId: string;
   fullName: string;
   phone: string;
+  secondaryPhone?: string;
+  tcNo?: string; // TC Kimlik No veya Vergi No
   email?: string;
   city?: string;
   address?: string;
@@ -38,6 +43,9 @@ export interface Vehicle {
   transmission: 'Manuel' | 'Otomatik' | 'Yarı Otomatik';
   currentKm: number;
   color?: string;
+  inspectionDate?: string; // TÜVTÜRK Muayene Geçerlilik Tarihi (YYYY-MM-DD)
+  lastMaintenanceDate?: string;
+  lastMaintenanceKm?: number;
   notes?: string;
   createdAt: string;
 }
@@ -98,6 +106,20 @@ export interface ServiceOrder {
   kmAtEntry: number; // Servise Giriş KM
   nextMaintenanceKm?: number; // Bir sonraki bakım KM (örn: +10.000)
   nextMaintenanceDate?: string;
+  serviceType?: 'PERIYODIK_BAKIM' | 'MEKANIK_ONARIM' | 'AGIR_BAKIM' | 'FREN_SISTEMI' | 'ELEKTRIK_ELEKTRONIK' | 'KAPORTA_BOYA' | 'GENEL_KONTROL';
+  // Fotoğraflı Giriş Ekspertiz & Hasar Tespiti
+  fuelLevel?: 'EMPTY' | 'QUARTER' | 'HALF' | 'THREE_QUARTERS' | 'FULL';
+  damageNotes?: string; // Kaporta çizik, göçük ve mevcut hasar notları
+  intakePhotos?: string[]; // Araç kabul fotoğrafları (Base64 veya URL)
+  // Usta Ekstra Parça / Masraf Onayı
+  extraApprovalStatus?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
+  extraApprovalNotes?: string;
+  extraApprovalAmount?: number;
+  // Teslim & Hazır Bildirimi
+  readyNotificationSent?: boolean;
+  readyNotificationSentAt?: string;
+  reminderSent?: boolean;
+  reminderSentAt?: string;
   items: ServiceItem[];
   partsTotal: number;
   laborTotal: number;
