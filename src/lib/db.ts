@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { AppDatabase, Shop, Customer, Vehicle, Part, ServiceOrder, StockMovement } from '../types/index';
+import { AppDatabase, Shop, Customer, Vehicle, Part, ServiceOrder, StockMovement, User } from '../types/index';
 import { initialData } from './initialData';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -20,7 +20,12 @@ export function readDb(): AppDatabase {
   ensureDbFile();
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw) as AppDatabase;
+    const db = JSON.parse(raw) as AppDatabase;
+    if (!Array.isArray(db.users) || db.users.length === 0) {
+      db.users = initialData.users || [];
+      writeDb(db);
+    }
+    return db;
   } catch (error) {
     console.error('Error reading db.json, falling back to initial data:', error);
     return initialData;
@@ -359,3 +364,74 @@ export function getShopStats(shopId: string) {
     recentOrders: orders.slice(-5).reverse()
   };
 }
+
+// ----------------- USER OPERATIONS -----------------
+export function getUsers(shopId?: string): User[] {
+  const db = readDb();
+  if (shopId) {
+    return db.users.filter((u) => u.shopId === shopId);
+  }
+  return db.users;
+}
+
+export function getUserById(id: string): User | undefined {
+  const db = readDb();
+  return db.users.find((u) => u.id === id);
+}
+
+export function getUserByUsername(username: string): User | undefined {
+  const db = readDb();
+  const clean = username.trim().toLowerCase();
+  return db.users.find((u) => u.username.toLowerCase() === clean);
+}
+
+export function createUser(
+  shopId: string,
+  userData: Omit<User, 'id' | 'shopId' | 'createdAt'>
+): User {
+  const db = readDb();
+  const newUser: User = {
+    ...userData,
+    id: `usr-${Date.now()}`,
+    shopId,
+    createdAt: new Date().toISOString()
+  };
+  db.users.push(newUser);
+  writeDb(db);
+  return newUser;
+}
+
+export function updateUser(id: string, updates: Partial<User>): User | null {
+  const db = readDb();
+  const idx = db.users.findIndex((u) => u.id === id);
+  if (idx === -1) return null;
+  db.users[idx] = { ...db.users[idx], ...updates, updatedAt: new Date().toISOString() };
+  writeDb(db);
+  return db.users[idx];
+}
+
+export function deleteUser(id: string): boolean {
+  const db = readDb();
+  const initialLength = db.users.length;
+  // Admin kullanıcısının yanlışlıkla silinmesini engelle
+  const userToDelete = db.users.find((u) => u.id === id);
+  if (!userToDelete || userToDelete.username === 'admin') {
+    return false;
+  }
+  db.users = db.users.filter((u) => u.id !== id);
+  if (db.users.length !== initialLength) {
+    writeDb(db);
+    return true;
+  }
+  return false;
+}
+
+export function updateShop(id: string, updates: Partial<Shop>): Shop | null {
+  const db = readDb();
+  const idx = db.shops.findIndex((s) => s.id === id);
+  if (idx === -1) return null;
+  db.shops[idx] = { ...db.shops[idx], ...updates };
+  writeDb(db);
+  return db.shops[idx];
+}
+

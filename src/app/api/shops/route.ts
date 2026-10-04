@@ -36,3 +36,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dükkan oluşturulamadı' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, ...updates } = body;
+    if (!id) {
+      return NextResponse.json({ error: 'Dükkan ID zorunludur' }, { status: 400 });
+    }
+
+    const { updateShop } = await import('@/lib/db');
+    const updated = updateShop(id, updates);
+    if (!updated) {
+      return NextResponse.json({ error: 'Dükkan bulunamadı' }, { status: 404 });
+    }
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('Error updating shop:', error);
+    return NextResponse.json({ error: 'Dükkan güncellenemedi' }, { status: 500 });
+  }
+}
+

@@ -562,5 +562,47 @@
       "notes": "34 AB 1234 iş emrine parça çıkışı",
       "createdAt": "2026-09-27T08:35:00.000Z"
     }
+  ],
+  "users": [
+    {
+      "id": "usr-admin",
+      "shopId": "shop-1",
+      "username": "admin",
+      "fullName": "Özkan Usta (Servis Müdürü)",
+      "email": "yonetici@ozkanoto.com",
+      "phone": "0532 555 00 01",
+      "role": "ADMIN",
+      "passwordHash": "admin123",
+      "allowedMenus": ["dashboard", "orders", "inventory", "vehicles", "accounts", "reminders", "reports", "settings"],
+      "twoFactorEnabled": true,
+      "twoFactorSecret": "JBSWY3DPEHPK3PXP",
+      "createdAt": "2026-01-10T08:00:00.000Z"
+    },
+    {
+      "id": "usr-usta",
+      "shopId": "shop-1",
+      "username": "usta",
+      "fullName": "Murat Usta (Mekanik Personeli)",
+      "email": "murat@ozkanoto.com",
+      "phone": "0544 555 00 02",
+      "role": "USER",
+      "passwordHash": "usta123",
+      "allowedMenus": ["dashboard", "orders", "vehicles"],
+      "twoFactorEnabled": false,
+      "createdAt": "2026-02-01T09:00:00.000Z"
+    },
+    {
+      "id": "usr-hasan",
+      "shopId": "shop-1",
+      "username": "hasan",
+      "fullName": "Hasan Usta (Fren & Ön Takım)",
+      "email": "hasan@ozkanoto.com",
+      "phone": "0555 555 00 03",
+      "role": "USER",
+      "passwordHash": "hasan123",
+      "allowedMenus": ["dashboard", "orders", "vehicles", "reminders"],
+      "twoFactorEnabled": false,
+      "createdAt": "2026-03-01T10:00:00.000Z"
+    }
   ]
 }

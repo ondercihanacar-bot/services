@@ -144,6 +144,34 @@ export interface StockMovement {
   createdAt: string;
 }
 
+export type UserRole = 'ADMIN' | 'USER';
+
+export type AppMenuItem =
+  | 'dashboard'
+  | 'orders'
+  | 'inventory'
+  | 'vehicles'
+  | 'accounts'
+  | 'reminders'
+  | 'reports'
+  | 'settings';
+
+export interface User {
+  id: string;
+  shopId: string;
+  username: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  role: UserRole;
+  passwordHash: string;
+  allowedMenus: AppMenuItem[];
+  twoFactorEnabled: boolean;
+  twoFactorSecret?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface AppDatabase {
   shops: Shop[];
   customers: Customer[];
@@ -151,4 +179,5 @@ export interface AppDatabase {
   parts: Part[];
   serviceOrders: ServiceOrder[];
   stockMovements: StockMovement[];
+  users: User[];
 }

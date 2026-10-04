@@ -12,7 +12,7 @@ Write-Host "======================================================" -ForegroundC
 Write-Host "         SERVICES - GITHUB PROJE GONDER (PUSH)        " -ForegroundColor Cyan
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Depo: https://github.com/mgokseninclk-design/services" -ForegroundColor Gray
+Write-Host "Depo: https://github.com/ondercihanacar-bot/services" -ForegroundColor Gray
 Write-Host "Degisiklikler GitHub'a yukleniyor (git push origin main)..." -ForegroundColor Yellow
 Write-Host ""
 

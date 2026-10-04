@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shop, Part, Vehicle, Customer, ServiceStatus } from '@/types/index';
+import { Shop, Part, Vehicle, Customer, ServiceStatus, User, AppMenuItem } from '@/types/index';
 import { EnrichedServiceOrder } from '@/lib/db';
 import Header from '@/components/Header';
 import DashboardView from '@/components/DashboardView';
@@ -21,6 +21,8 @@ import OilStickerModal from '@/components/OilStickerModal';
 import AccountsView from '@/components/AccountsView';
 import ExtraApprovalModal from '@/components/ExtraApprovalModal';
 import VehicleIntakeModal from '@/components/VehicleIntakeModal';
+import LoginModal from '@/components/LoginModal';
+import SettingsView from '@/components/SettingsView';
 import {
   LayoutDashboard,
   Car,
@@ -31,15 +33,20 @@ import {
   CheckCircle2,
   Bell,
   CalendarRange,
-  Wallet
+  Wallet,
+  Settings
 } from 'lucide-react';
 
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   const [shops, setShops] = useState<Shop[]>([]);
   const [activeShopId, setActiveShopId] = useState<string>('shop-1');
 
   // Navigation
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'inventory' | 'vehicles' | 'accounts' | 'reminders' | 'reports'>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppMenuItem>('dashboard');
+
 
   // Data states
   const [stats, setStats] = useState<any>(null);
@@ -116,6 +123,40 @@ export default function Home() {
     }
   }, []);
 
+  // Kullanıcı Oturumu Yükleme
+  useEffect(() => {
+    const saved = localStorage.getItem('services_auth_user');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setCurrentUser(parsed);
+      } catch {
+        localStorage.removeItem('services_auth_user');
+        setIsLoginModalOpen(true);
+      }
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  }, []);
+
+  // Menü Yetki Kontrolü ve Kısıtlı Sayfadan Yönlendirme
+  useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser.role === 'ADMIN') return;
+
+    const allowed = currentUser.allowedMenus || ['dashboard'];
+    if (!allowed.includes(activeTab)) {
+      const fallback = (allowed[0] || 'dashboard') as AppMenuItem;
+      setActiveTab(fallback);
+    }
+  }, [currentUser, activeTab]);
+
+  const canAccess = (tab: AppMenuItem) => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'ADMIN') return true;
+    return currentUser.allowedMenus?.includes(tab);
+  };
+
   useEffect(() => {
     fetchShops();
   }, []);
@@ -125,6 +166,7 @@ export default function Home() {
       fetchShopData(activeShopId);
     }
   }, [activeShopId, fetchShopData]);
+
 
   // Hızlı Plaka Arama
   const handleSearchPlate = (plate: string) => {
@@ -348,6 +390,7 @@ export default function Home() {
         shops={shops}
         activeShopId={activeShopId}
         vehicles={vehicles}
+        currentUser={currentUser}
         onSelectShop={(id) => setActiveShopId(id)}
         onOpenNewOrder={() => {
           setPreselectedVehicle(null);
@@ -361,6 +404,18 @@ export default function Home() {
           setActiveTab('vehicles');
           showToast(`Araç Seçildi: [${veh.plate}] ${veh.brand} ${veh.model}`);
         }}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onLogout={() => {
+          setCurrentUser(null);
+          localStorage.removeItem('services_auth_user');
+          setIsLoginModalOpen(true);
+          showToast('Oturum kapatıldı.');
+        }}
+        onNavigateToSettings={() => {
+          if (currentUser?.role === 'ADMIN') {
+            setActiveTab('settings');
+          }
+        }}
       />
 
       {/* Ana Navigasyon Sekmeleri */}
@@ -371,123 +426,153 @@ export default function Home() {
             <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-0.5">
               
               {/* 1. Genel Bakış */}
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'dashboard'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <LayoutDashboard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'dashboard' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Genel Bakış</span>
-              </button>
+              {canAccess('dashboard') && (
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'dashboard'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <LayoutDashboard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'dashboard' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Genel Bakış</span>
+                </button>
+              )}
 
               {/* 2. İş Emirleri */}
-              <button
-                onClick={() => setActiveTab('orders')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'orders'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <Car className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'orders' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>İş Emirleri</span>
-                {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'orders' ? 'bg-cyan-400 text-slate-950 shadow-2xs' : 'bg-cyan-100 text-cyan-800'
-                  }`}>
-                    {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length}
-                  </span>
-                )}
-              </button>
+              {canAccess('orders') && (
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'orders'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Car className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'orders' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>İş Emirleri</span>
+                  {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                      activeTab === 'orders' ? 'bg-cyan-400 text-slate-950 shadow-2xs' : 'bg-cyan-100 text-cyan-800'
+                    }`}>
+                      {orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'WAITING_PARTS').length}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* 3. Stok Takibi */}
-              <button
-                onClick={() => setActiveTab('inventory')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'inventory'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <Package className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'inventory' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Stok Takibi</span>
-                {stats?.lowStockCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-2xs">
-                    {stats.lowStockCount}
-                  </span>
-                )}
-              </button>
+              {canAccess('inventory') && (
+                <button
+                  onClick={() => setActiveTab('inventory')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'inventory'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Package className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'inventory' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Stok Takibi</span>
+                  {stats?.lowStockCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-2xs">
+                      {stats.lowStockCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* 4. Araçlar & Rehber */}
-              <button
-                onClick={() => setActiveTab('vehicles')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'vehicles'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <Users className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'vehicles' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Araçlar</span>
-              </button>
+              {canAccess('vehicles') && (
+                <button
+                  onClick={() => setActiveTab('vehicles')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'vehicles'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Users className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'vehicles' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Araçlar</span>
+                </button>
+              )}
 
               {/* 5. Cari & Borç Takibi */}
-              <button
-                onClick={() => setActiveTab('accounts')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'accounts'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <Wallet className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'accounts' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Cari & Borç</span>
-                {openDebtCount > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'accounts' ? 'bg-rose-500 text-white shadow-2xs' : 'bg-rose-100 text-rose-800'
-                  }`}>
-                    {openDebtCount}
-                  </span>
-                )}
-              </button>
+              {canAccess('accounts') && (
+                <button
+                  onClick={() => setActiveTab('accounts')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'accounts'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Wallet className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'accounts' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Cari & Borç</span>
+                  {openDebtCount > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                      activeTab === 'accounts' ? 'bg-rose-500 text-white shadow-2xs' : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {openDebtCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* 6. Bakım & WhatsApp Hatırlatma */}
-              <button
-                onClick={() => setActiveTab('reminders')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'reminders'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <Bell className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reminders' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Hatırlatmalar</span>
-                {dueRemindersCount > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    activeTab === 'reminders' ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'bg-amber-100 text-amber-900 font-bold'
-                  }`}>
-                    {dueRemindersCount}
-                  </span>
-                )}
-              </button>
+              {canAccess('reminders') && (
+                <button
+                  onClick={() => setActiveTab('reminders')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'reminders'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Bell className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reminders' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Hatırlatmalar</span>
+                  {dueRemindersCount > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                      activeTab === 'reminders' ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'bg-amber-100 text-amber-900 font-bold'
+                    }`}>
+                      {dueRemindersCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
-              {/* 6. Raporlar & Sorgu */}
-              <button
-                onClick={() => setActiveTab('reports')}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeTab === 'reports'
-                    ? 'neon-tab-active'
-                    : 'neon-tab-inactive'
-                }`}
-              >
-                <CalendarRange className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reports' ? 'text-cyan-300' : 'text-slate-500'}`} />
-                <span>Raporlar & Sorgu</span>
-              </button>
+              {/* 7. Raporlar & Sorgu */}
+              {canAccess('reports') && (
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'reports'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <CalendarRange className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'reports' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Raporlar & Sorgu</span>
+                </button>
+              )}
+
+              {/* 8. Yönetici Ayarlar & Yetkiler Menüsü (SADECE ADMIN) */}
+              {currentUser?.role === 'ADMIN' && (
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    activeTab === 'settings'
+                      ? 'neon-tab-active'
+                      : 'neon-tab-inactive'
+                  }`}
+                >
+                  <Settings className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'settings' ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  <span>Ayarlar & Yetkiler</span>
+                </button>
+              )}
 
             </div>
+
 
             {/* Canlı Yenileme Butonu */}
             <div className="shrink-0 flex items-center">
@@ -602,6 +687,22 @@ export default function Home() {
             onOpenHistoryModal={(veh) => setHistoryVehicle(veh)}
           />
         )}
+
+        {/* 8. Yönetici Ayarlar & Yetkiler Paneli */}
+        {activeTab === 'settings' && currentUser?.role === 'ADMIN' && (
+          <SettingsView
+            currentUser={currentUser}
+            shop={activeShop}
+            onUpdateShop={(updated) => {
+              setShops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+            }}
+            showToast={showToast}
+            onUserSessionUpdate={(updatedUser) => {
+              setCurrentUser(updatedUser);
+              localStorage.setItem('services_auth_user', JSON.stringify(updatedUser));
+            }}
+          />
+        )}
       </main>
 
       {/* Alt Bilgi */}
@@ -705,6 +806,25 @@ export default function Home() {
         />
       )}
 
+      {/* Giriş & 2FA Güvenlik Modalı */}
+      <LoginModal
+        isOpen={isLoginModalOpen || !currentUser}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('services_auth_user', JSON.stringify(user));
+          setIsLoginModalOpen(false);
+          showToast(`Giriş başarılı: ${user.fullName} (${user.role === 'ADMIN' ? '👑 Yönetici' : '🔧 Personel'})`);
+          if (user.role !== 'ADMIN' && !user.allowedMenus.includes(activeTab)) {
+            setActiveTab((user.allowedMenus[0] as AppMenuItem) || 'dashboard');
+          }
+        }}
+        onClose={() => {
+          if (currentUser) setIsLoginModalOpen(false);
+        }}
+        canClose={Boolean(currentUser)}
+      />
+
     </div>
   );
 }
+

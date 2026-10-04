@@ -12,7 +12,7 @@ Write-Host "======================================================" -ForegroundC
 Write-Host "         SERVICES - GITHUB GUNCELLEME (PULL)          " -ForegroundColor Cyan
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Depo: https://github.com/mgokseninclk-design/services" -ForegroundColor Gray
+Write-Host "Depo: https://github.com/ondercihanacar-bot/services" -ForegroundColor Gray
 Write-Host "Guncellemeler kontrol ediliyor ve cekiliyor..." -ForegroundColor Yellow
 Write-Host ""
 
